@@ -30,8 +30,8 @@ sub _start_tag {
 	return;
     }
 
-    # no 'rel' attribute
-    return unless exists $attr->{rel};
+    # no 'rel' nor 'rev' attribute
+    return unless exists $attr->{rel} or exists $attr->{rev};
 
     my $href = $attr->{href} or return;
     $href = URI->new_abs($href, $self->{relextor_base})->as_string
@@ -62,13 +62,14 @@ package HTML::RelExtor::Link;
 
 sub new {
     my($class, $tag, $href, $attr) = @_;
-    my $rel = $attr->{rel};
-    my @rel = grep length, split /\s+/, $attr->{rel};
+    my @rel = grep length, split /\s+/, ($attr->{rel} || '');
+    my @rev = grep length, split /\s+/, ($attr->{rev} || '');
     bless {
 	tag  => $tag,
 	href => $href,
 	attr => $attr,
 	rel  => \@rel,
+	rev  => \@rev,
     }, $class;
 }
 
@@ -92,9 +93,19 @@ sub rel {
     @{$self->{rel}};
 }
 
+sub rev {
+    my $self = shift;
+    @{$self->{rev}};
+}
+
 sub has_rel {
     my($self, $tag) = @_;
     scalar grep { $_ eq $tag } $self->rel;
+}
+
+sub has_rev {
+    my($self, $tag) = @_;
+    scalar grep { $_ eq $tag } $self->rev;
 }
 
 sub text {
@@ -107,7 +118,7 @@ __END__
 
 =head1 NAME
 
-HTML::RelExtor - Extract "rel" information from LINK and A tags.
+HTML::RelExtor - Extract "rel" and "rev" information from LINK and A tags.
 
 =head1 SYNOPSIS
 
@@ -118,6 +129,11 @@ HTML::RelExtor - Extract "rel" information from LINK and A tags.
 
   for my $link ($parser->links) {
       print $link->href, "\n" if $link->has_rel('nofollow');
+  }
+
+  my($canonical) = grep $_->has_rev('canonical'), $parser->links;
+  if ($canonical) {
+      $shorten_url = $canonical->href;
   }
 
 =head1 DESCRIPTION
@@ -145,7 +161,7 @@ Parses HTML content. See L<HTML::Parser> for other method signatures.
 
   my @links = $parser->links();
 
-Returns list of link information with 'rel' attributes as a
+Returns list of link information with 'rel' or 'rev' attributes as a
 HTML::RelExtor::Link object.
 
 =back
@@ -178,11 +194,23 @@ Returns a hash reference of attributes of the tag.
 
 Returns list of 'rel' attributes. If a link contains C<< <a href="tag nofollow">blahblah</a> >>, C<rel()> method returns a list that contains C<tag> and C<nofollow>.
 
+=item rev
+
+  my @rec = $link->rev;
+
+Returns list of 'rev' attributes.
+
 =item has_rel
 
   if ($link->has_rel('nofollow')) { }
 
 A handy shortcut method to find out if a link contains specific relationship.
+
+=item has_rev
+
+  if ($link->has_rev('canonical')) { }
+
+A handy shortcut method to find out if a link contains specific reverse relationship.
 
 =item text
 
@@ -223,12 +251,14 @@ it under the same terms as Perl itself.
 
 L<HTML::LinkExtor>, L<HTML::Parser>
 
-http://www.w3.org/TR/REC-html40/struct/links.html
+L<http://www.w3.org/TR/REC-html40/struct/links.html>
 
-http://www.google.com/googleblog/2005/01/preventing-comment-spam.html
+L<http://www.google.com/googleblog/2005/01/preventing-comment-spam.html>
 
-http://developers.technorati.com/wiki/RelTag
+L<http://developers.technorati.com/wiki/RelTag>
 
-http://gmpg.org/xfn/11
+L<http://gmpg.org/xfn/11>
+
+L<http://shiflett.org/blog/2009/apr/save-the-internet-with-rev-canonical>
 
 =cut
