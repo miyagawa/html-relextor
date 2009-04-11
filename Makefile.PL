@@ -1,9 +1,9 @@
-use ExtUtils::MakeMaker;
-WriteMakefile(
-    'NAME'      => 'HTML::RelExtor',
-    'VERSION_FROM' => 'lib/HTML/RelExtor.pm', # finds $VERSION
-    'PREREQ_PM' => {
-	Test::More => 0.32,
-	HTML::Parser => 3.0,
-    },
-);
+use inc::Module::Install;
+name 'HTML-RelExtor';
+all_from 'lib/HTML/RelExtor.pm';
+requires 'HTML::Parser', 3.0;
+build_requires 'Test::More';
+use_test_base;
+auto_set_repository;
+auto_include;
+WriteAll;
