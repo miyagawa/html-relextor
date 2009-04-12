@@ -2,7 +2,7 @@ package HTML::RelExtor;
 
 use strict;
 use vars qw($VERSION);
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 use HTML::Parser;
 use URI;
@@ -49,7 +49,20 @@ sub _start_tag {
 
 sub links {
     my $self = shift;
-    $self->{links} ? @{$self->{links}} : ();
+    my %args = @_;
+    my @links = $self->{links} ? @{$self->{links}} : ();
+
+    if ($args{rel} && $args{rev}) {
+        Carp::croak("You can't pass both rev and rel to the links()");
+    }
+
+    if ($args{rel}) {
+        @links = grep $_->has_rel($args{rel}), @links;
+    } elsif ($args{rev}) {
+        @links = grep $_->has_rev($args{rev}), @links;
+    }
+
+    return @links;
 }
 
 sub parse_file {
@@ -160,9 +173,16 @@ Parses HTML content. See L<HTML::Parser> for other method signatures.
 =item links
 
   my @links = $parser->links();
+  my @links = $parser->links(rel => 'alternate');
+  my @links = $parser->links(rev => 'canonical');
 
 Returns list of link information with 'rel' or 'rev' attributes as a
-HTML::RelExtor::Link object.
+HTML::RelExtor::Link object. When given I<rel> or I<rev> parameter,
+returns only links that has the I<rel> or I<rev> value.
+
+  # These are equivalent
+  @links = $parser->links(rel => 'alternate');
+  @links = grep $_->has_rel('alternate'), $parser->links;
 
 =back
 
@@ -196,7 +216,7 @@ Returns list of 'rel' attributes. If a link contains C<< <a href="tag nofollow">
 
 =item rev
 
-  my @rec = $link->rev;
+  my @rev = $link->rev;
 
 Returns list of 'rev' attributes.
 
