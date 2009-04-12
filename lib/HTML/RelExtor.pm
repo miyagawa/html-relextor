@@ -1,6 +1,7 @@
 package HTML::RelExtor;
 
 use strict;
+use 5.008_001;
 use vars qw($VERSION);
 $VERSION = '0.03';
 
@@ -263,6 +264,8 @@ Accept callback parameter when creating a new instance.
 =head1 AUTHOR
 
 Tatsuhiko Miyagawa E<lt>miyagawa at bulknews.netE<gt>
+
+=head1 LICENSE
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
